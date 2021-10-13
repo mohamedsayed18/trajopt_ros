@@ -36,10 +36,9 @@ macro(add_gtest test_name test_file)
   target_compile_options(${test_name} PRIVATE ${TRAJOPT_COMPILE_OPTIONS_PRIVATE} ${TRAJOPT_COMPILE_OPTIONS_PUBLIC})
   target_compile_definitions(${test_name} PRIVATE ${TRAJOPT_COMPILE_DEFINITIONS} TRAJOPT_DIR="${CMAKE_SOURCE_DIR}")
   target_cxx_version(${test_name} PRIVATE VERSION ${TRAJOPT_CXX_VERSION})
-  target_clang_tidy(${test_name} ARGUMENTS ${TRAJOPT_CLANG_TIDY_ARGS} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
+  target_clang_tidy(${test_name} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
   target_link_libraries(${test_name}
       ${PROJECT_NAME}
-      tesseract::tesseract_environment_ofkt
       GTest::GTest
       GTest::Main
       Boost::boost)
@@ -54,6 +53,7 @@ macro(add_gtest test_name test_file)
 endmacro()
 
 add_gtest(${PROJECT_NAME}_planning_unit planning_unit.cpp)
+add_gtest(${PROJECT_NAME}_numerical_ik_unit numerical_ik_unit.cpp)
 #add_gtest(${PROJECT_NAME}_interface_unit interface_unit.cpp)
 add_gtest(${PROJECT_NAME}_joint_costs_unit joint_costs_unit.cpp)
 add_gtest(${PROJECT_NAME}_kinematic_costs_unit kinematic_costs_unit.cpp)
@@ -61,3 +61,4 @@ add_gtest(${PROJECT_NAME}_cast_cost_unit cast_cost_unit.cpp)
 add_gtest(${PROJECT_NAME}_cast_cost_world_unit cast_cost_world_unit.cpp)
 add_gtest(${PROJECT_NAME}_cast_cost_attached_unit cast_cost_attached_unit.cpp)
 add_gtest(${PROJECT_NAME}_cast_cost_octomap_unit cast_cost_octomap_unit.cpp)
+add_gtest(${PROJECT_NAME}_simple_collision_unit simple_collision_unit.cpp)

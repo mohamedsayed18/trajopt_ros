@@ -1,4 +1,5 @@
 find_package(GTest REQUIRED)
+find_package(trajopt REQUIRED)
 
 if(NOT TARGET GTest::GTest)
   add_library(GTest::GTest INTERFACE IMPORTED)
@@ -35,10 +36,10 @@ macro(add_gtest test_name test_file)
   target_compile_options(${test_name} PRIVATE ${TRAJOPT_COMPILE_OPTIONS_PRIVATE} ${TRAJOPT_COMPILE_OPTIONS_PUBLIC})
   target_compile_definitions(${test_name} PRIVATE ${TRAJOPT_COMPILE_DEFINITIONS} TRAJOPT_IFOPT_DIR="${CMAKE_SOURCE_DIR}")
   target_cxx_version(${test_name} PRIVATE VERSION ${TRAJOPT_CXX_VERSION})
-  target_clang_tidy(${test_name} ARGUMENTS ${TRAJOPT_CLANG_TIDY_ARGS} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
+  target_clang_tidy(${test_name} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
   target_link_libraries(${test_name}
       ${PROJECT_NAME}
-      tesseract::tesseract_environment_ofkt
+      tesseract::tesseract_environment
       ifopt::ifopt_ipopt
       GTest::GTest
       GTest::Main
@@ -58,8 +59,12 @@ endmacro()
 add_gtest(${PROJECT_NAME}_cartesian_position_constraint_unit cartesian_position_constraint_unit.cpp)
 add_gtest(${PROJECT_NAME}_cast_cost_unit cast_cost_unit.cpp)
 add_gtest(${PROJECT_NAME}_collision_unit collision_unit.cpp)
+add_gtest(${PROJECT_NAME}_continuous_collision_gradient_unit continuous_collision_gradient_unit.cpp)
+add_gtest(${PROJECT_NAME}_cost_wrappers_unit cost_wrappers_unit.cpp)
+add_gtest(${PROJECT_NAME}_discrete_collision_gradient_unit discrete_collision_gradient_unit.cpp)
 add_gtest(${PROJECT_NAME}_inverse_kinematics_constraint_unit inverse_kinematics_constraint_unit.cpp)
 add_gtest(${PROJECT_NAME}_joint_terms_unit joint_terms_unit.cpp)
 add_gtest(${PROJECT_NAME}_utils_unit utils_unit.cpp)
 add_gtest(${PROJECT_NAME}_variable_sets_unit variable_sets_unit.cpp)
+add_gtest(${PROJECT_NAME}_simple_collision_unit simple_collision_unit.cpp)
 

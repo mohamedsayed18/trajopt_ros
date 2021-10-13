@@ -174,6 +174,7 @@ BasicTrustRegionSQPParameters::BasicTrustRegionSQPParameters()
   trust_expand_ratio = 1.5;
   cnt_tolerance = 1e-4;
   max_merit_coeff_increases = 5;
+  max_qp_solver_failures = 3;
   merit_coeff_increase_ratio = 10;
   max_time = static_cast<double>(INFINITY);
   initial_merit_error_coeff = 10;
@@ -301,89 +302,82 @@ void BasicTrustRegionSQPResults::update(const OptResults& prev_opt_results,
 
 void BasicTrustRegionSQPResults::print() const
 {
-  std::printf("%15s | %10s | %10s | %10s | %10s | %10s | %10s\n",
-              "",
+  // Print Header
+  std::printf("\n| %s |\n", std::string(75, '=').c_str());
+  std::printf("| %s %s %s |\n", std::string(29, ' ').c_str(), "ROS Industrial", std::string(30, ' ').c_str());
+  std::printf("| %s %s %s |\n", std::string(25, ' ').c_str(), "TrajOpt Motion Planning", std::string(25, ' ').c_str());
+  std::printf("| %s |\n", std::string(75, '=').c_str());
+
+  // Print Cost and Constraint Data
+  std::printf("| %10s | %10s | %10s | %10s | %10s | %10s | -%15s \n",
               "merit",
               "oldexact",
               "new_exact",
               "dapprox",
               "dexact",
-              "ratio");
-  std::printf("%15s | %10s---%10s---%10s---%10s---%10s---%10s\n",
-              "COSTS",
-              "----------",
-              "----------",
-              "----------",
-              "----------",
-              "----------",
-              "----------");
+              "ratio",
+              "");
+  std::printf("| %s | COSTS\n", std::string(75, '-').c_str());
   for (size_t i = 0; i < old_cost_vals.size(); ++i)
   {
     double approx_improve = old_cost_vals[i] - model_cost_vals[i];
     double exact_improve = old_cost_vals[i] - new_cost_vals[i];
     if (fabs(approx_improve) > 1e-8)
-      std::printf("%15s | %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e\n",
-                  cost_names[i].c_str(),
+      std::printf("| %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %-15s \n",
                   "----------",
                   old_cost_vals[i],
                   new_cost_vals[i],
                   approx_improve,
                   exact_improve,
-                  exact_improve / approx_improve);
+                  exact_improve / approx_improve,
+                  cost_names[i].c_str());
     else
-      std::printf("%15s | %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10s\n",
-                  cost_names[i].c_str(),
+      std::printf("| %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10s | %-15s \n",
                   "----------",
                   old_cost_vals[i],
                   new_cost_vals[i],
                   approx_improve,
                   exact_improve,
-                  "  ------  ");
+                  "  ------  ",
+                  cost_names[i].c_str());
   }
 
   if (!cnt_names.empty())
   {
-    std::printf("%15s | %10s---%10s---%10s---%10s---%10s---%10s\n",
-                "CONSTRAINTS",
-                "----------",
-                "----------",
-                "----------",
-                "----------",
-                "----------",
-                "---------");
+    std::printf("| %s | CONSTRAINTS\n", std::string(75, '-').c_str());
     for (size_t i = 0; i < old_cnt_viols.size(); ++i)
     {
       double approx_improve = old_cnt_viols[i] - model_cnt_viols[i];
       double exact_improve = old_cnt_viols[i] - new_cnt_viols[i];
       if (fabs(approx_improve) > 1e-8)
-        std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e\n",
-                    cnt_names[i].c_str(),
+        std::printf("| %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %-15s \n",
                     merit_error_coeffs[i],
                     merit_error_coeffs[i] * old_cnt_viols[i],
                     merit_error_coeffs[i] * new_cnt_viols[i],
                     merit_error_coeffs[i] * approx_improve,
                     merit_error_coeffs[i] * exact_improve,
-                    exact_improve / approx_improve);
+                    exact_improve / approx_improve,
+                    cnt_names[i].c_str());
       else
-        std::printf("%15s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %10s\n",
-                    cnt_names[i].c_str(),
+        std::printf("| %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %10s | %-15s \n",
                     merit_error_coeffs[i],
                     merit_error_coeffs[i] * old_cnt_viols[i],
                     merit_error_coeffs[i] * new_cnt_viols[i],
                     merit_error_coeffs[i] * approx_improve,
                     merit_error_coeffs[i] * exact_improve,
-                    "  ------  ");
+                    "  ------  ",
+                    cnt_names[i].c_str());
     }
   }
-
-  std::printf("%15s | %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e\n",
-              "TOTAL",
+  std::printf("| %s |\n", std::string(75, '=').c_str());
+  std::printf("| %10s | %10.3e | %10.3e | %10.3e | %10.3e | %10.3e | %15s\n",
               "----------",
               old_merit,
               new_merit,
               approx_merit_improve,
               exact_merit_improve,
-              merit_improve_ratio);
+              merit_improve_ratio,
+              "TOTAL");
 }
 
 void BasicTrustRegionSQPResults::writeSolver(std::FILE* stream, bool header) const
@@ -588,6 +582,7 @@ OptStatus BasicTrustRegionSQP::optimize()
   using Clock = std::chrono::high_resolution_clock;
   auto start_time = Clock::now();
 
+  int qp_solver_failures = 0;
   for (int merit_increases = 0; merit_increases < param_.max_merit_coeff_increases; ++merit_increases)
   { /* merit adjustment loop */
     for (int iter = 1;; ++iter)
@@ -666,6 +661,14 @@ OptStatus BasicTrustRegionSQP::optimize()
                     "/tmp/fail.ilp");
           model_->writeToFile("/tmp/fail.lp");
           model_->writeToFile("/tmp/fail.ilp");
+          if (qp_solver_failures < param_.max_qp_solver_failures)
+          {
+            adjustTrustRegion(param_.trust_shrink_ratio);
+            LOG_INFO("shrunk trust region. new box size: %.4f", param_.trust_box_size);
+            qp_solver_failures++;
+            break;
+          }
+          LOG_ERROR("The convex solver failed you one too many times.");
           retval = OPT_FAILED;
           goto cleanup;
         }

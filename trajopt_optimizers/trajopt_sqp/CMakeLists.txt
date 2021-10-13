@@ -34,11 +34,14 @@ trajopt_variables()
 
 add_library(${PROJECT_NAME}
     src/osqp_eigen_solver.cpp
-    src/qp_problem.cpp
+    src/ifopt_qp_problem.cpp
     src/trust_region_sqp_solver.cpp
+    src/trajopt_qp_problem.cpp
+    src/expressions.cpp
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
   console_bridge::console_bridge
+  trajopt::trajopt_ifopt
   ifopt::ifopt_core
   OsqpEigen::OsqpEigen
 )
@@ -50,7 +53,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_options(${PROJECT_NAME} PRIVATE ${TRAJOPT_COMPILE_OPTIONS_PRIVATE})
 target_compile_options(${PROJECT_NAME} PUBLIC ${TRAJOPT_COMPILE_OPTIONS_PUBLIC})
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${TRAJOPT_COMPILE_DEFINITIONS})
-#target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TRAJOPT_CLANG_TIDY_ARGS} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
+target_clang_tidy(${PROJECT_NAME} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TRAJOPT_CXX_VERSION})
 
 add_library(${PROJECT_NAME}_callbacks
@@ -67,6 +70,7 @@ target_include_directories(${PROJECT_NAME}_callbacks
 )
 target_link_libraries(${PROJECT_NAME}_callbacks PUBLIC
   trajopt::trajopt_ifopt
+  trajopt::trajopt_utils
   tesseract::tesseract_visualization
   tesseract::tesseract_common
   console_bridge::console_bridge
@@ -74,7 +78,7 @@ target_link_libraries(${PROJECT_NAME}_callbacks PUBLIC
 target_compile_options(${PROJECT_NAME}_callbacks PRIVATE ${TRAJOPT_COMPILE_OPTIONS_PRIVATE})
 target_compile_options(${PROJECT_NAME}_callbacks PUBLIC ${TRAJOPT_COMPILE_OPTIONS_PUBLIC})
 target_compile_definitions(${PROJECT_NAME}_callbacks PUBLIC ${TRAJOPT_COMPILE_DEFINITIONS})
-#target_clang_tidy(${PROJECT_NAME}_callbacks ARGUMENTS ${TRAJOPT_CLANG_TIDY_ARGS} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
+target_clang_tidy(${PROJECT_NAME}_callbacks ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
 target_cxx_version(${PROJECT_NAME}_callbacks PUBLIC VERSION ${TRAJOPT_CXX_VERSION})
 
 

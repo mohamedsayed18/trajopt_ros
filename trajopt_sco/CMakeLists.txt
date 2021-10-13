@@ -101,7 +101,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${TRAJOPT_COMPILE_OPTIONS_PRIVATE
 target_compile_options(${PROJECT_NAME} PUBLIC ${TRAJOPT_COMPILE_OPTIONS_PUBLIC})
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${TRAJOPT_COMPILE_DEFINITIONS})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION ${TRAJOPT_CXX_VERSION})
-#target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${TRAJOPT_CLANG_TIDY_ARGS} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
+#target_clang_tidy(${PROJECT_NAME} ENABLE ${TRAJOPT_ENABLE_CLANG_TIDY})
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
@@ -121,20 +121,20 @@ if (TRAJOPT_ENABLE_TESTING)
   enable_testing()
   add_run_tests_target(ENABLE ${TRAJOPT_ENABLE_RUN_TESTING})
 
-  if (HAVE_BPMPD)
-    # BPMPD Expects the caller to be in the install location so for
-    # testing it must manually be copied so tests will run.
-    add_custom_target(test_depend ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/bpmpd.par
-            ${CMAKE_INSTALL_PREFIX}/bin/bpmpd.par
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_BINARY_DIR}/bpmpd_caller
-            ${CMAKE_INSTALL_PREFIX}/bin/bpmpd_caller)
-    add_dependencies(test_depend ${PROJECT_NAME})
+#  if (HAVE_BPMPD)
+#    # BPMPD Expects the caller to be in the install location so for
+#    # testing it must manually be copied so tests will run.
+#    add_custom_target(test_depend ALL
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${CMAKE_CURRENT_SOURCE_DIR}/src/bpmpd.par
+#            ${CMAKE_INSTALL_PREFIX}/bin/bpmpd.par
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${CMAKE_CURRENT_BINARY_DIR}/bpmpd_caller
+#            ${CMAKE_INSTALL_PREFIX}/bin/bpmpd_caller)
+#    add_dependencies(test_depend ${PROJECT_NAME})
 
-    add_dependencies(run_tests test_depend)
-  endif()
+#    add_dependencies(run_tests test_depend)
+#  endif()
 
   add_subdirectory(test)
 endif()
